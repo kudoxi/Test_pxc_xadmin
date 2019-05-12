@@ -10,7 +10,7 @@ to_email_addr:list,收件人邮箱列表
 from_email:str,发件人邮箱
 
 '''
-@app.task(name="userinfo.tasks.send_email_task_run")
+@app.task(name="userinfo.tasks.send_email_task_run")#name='deploy.tasks.get_stockinfo
 def send_email_task_run(email_title,email_message,to_email_addr,from_email=DEFAULT_FROM_EMAIL,fail_silently=False):
     res = send_mail(email_title,email_message, from_email,to_email_addr, fail_silently=fail_silently)
     print("to_email_addr:",to_email_addr)

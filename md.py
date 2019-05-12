@@ -58,8 +58,10 @@ class MyMiddleware2(MiddlewareMixin):
         return response
 
     def process_exception(self,request, exception):
-        print("******in process_exception2")
-        return HttpResponse('page error')
+        print("******in process_exception2",exception)
+        #if exception:
+        #    return HttpResponse('page error',exception)
+
 
 class UserBasedExceptionMiddleware(MiddlewareMixin):
     def process_exception(self, request, exception):

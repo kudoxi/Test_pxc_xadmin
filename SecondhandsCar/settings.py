@@ -18,6 +18,8 @@ AUTH_USER_MODEL = "userinfo.UserInfo"
 import sys
 sys.path.insert(0,os.path.join(BASE_DIR,'apps'))
 sys.path.insert(1,os.path.join(BASE_DIR,'extra_apps'))
+MEDIA_URL='/upload/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'upload/')#这个是在浏览器上访问该上传文件的url的前缀
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
@@ -33,8 +35,8 @@ ALLOWED_HOSTS = ["*"]
 import djcelery
 djcelery.setup_loader()
 
-BROKER_URL = 'redis://176.23.1.213:6379/0'
-CELERY_RESULT_BACKEND = 'redis://176.23.1.213:6379/0'
+BROKER_URL = 'redis://192.168.2.183:6379/0'
+CELERY_RESULT_BACKEND = 'redis://192.168.2.183:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -55,7 +57,8 @@ INSTALLED_APPS = [
     'apps.pay',
     'apps.ORMdemo',
     'xadmin',
-    'crispy_forms'
+    'crispy_forms',
+    'DjangoUeditor'
 ]
 from md import MyMiddleware
 MIDDLEWARE = [
@@ -68,6 +71,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'md.MyMiddleware',
     'md.MyMiddleware2',
+
 ]
 
 ROOT_URLCONF = 'SecondhandsCar.urls'
@@ -103,7 +107,15 @@ DATABASES = {
         'PASSWORD':'root',
         'HOST':'localhost',
         'PORT':3306
-    }
+    },
+    'db2': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'stock',
+            'USER':'root',
+            'PASSWORD':'root',
+            'HOST':'localhost',
+            'PORT':3306
+        }
 }
 
 
@@ -165,14 +177,18 @@ LOGGING = {
 #create database secondhandscar default charset utf8;
 
 #邮箱配置
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-EMAIL_USE_TLS = False
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
+#To use port 465, you need to call smtplib.SMTP_SSL()
+# if you want use PORT 465,your EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend',and
+# you need to install django_smtp_ssl EMAIL_PORT=465
 EMAIL_HOST = 'smtp.qq.com'
-EMAIL_PORT = 465
+EMAIL_PORT = 465#587#25
 EMAIL_HOST_USER = '1140514109@qq.com'
-EMAIL_HOST_PASSWORD = 'zzzecyenrxzchdbi'
-DEFAULT_FROM_EMAIL = 'kudoxi<1140514109@qq.com>'
+EMAIL_HOST_PASSWORD = 'zsmfrjnvxapkjeif'#'zsmfrjnvxapkjeif'
+EMAIL_SUBJECT_PREFIX = u'django'#为邮件Subject-line前缀,默认是'[django]'
+EMAIL_USE_TLS = True                  #与SMTP服务器通信时，是否启动TLS链接(安全链接)。默认是false
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 #爬虫头部配置
 HEADERS = [
@@ -181,3 +197,6 @@ HEADERS = [
     {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1'},
     {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11'},
 ]
+
+#自定义COOKIES 签名采用方法的路径配置
+SIGNING_BACKEND = 'utils.signcookie.MySigner'

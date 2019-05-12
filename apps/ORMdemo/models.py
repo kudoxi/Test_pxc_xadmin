@@ -12,10 +12,11 @@ class UserType(models.Model):
 #    fo = models.ForeignKey('Foo')
 
 
-class UserInfo(models.Model):
+class UserInfos(models.Model):
     '''
     用户表
     '''
     name = models.CharField(max_length=64)
     age = models.IntegerField()
     ut = models.ForeignKey("UserType",on_delete=models.CASCADE)
+    ctime = models.DateTimeField(auto_now=True)

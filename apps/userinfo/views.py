@@ -1,20 +1,20 @@
 from django.shortcuts import render,redirect
 from django.http import HttpResponse,HttpResponseRedirect
 from django.core.exceptions import ObjectDoesNotExist,ValidationError
-import json
-import datetime
-import logging
 from .models import *
 from SecondhandsCar.settings import *
 from django.contrib.auth.hashers import make_password,check_password
 from .userDecorator import *
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
-import re
 from django.template.loader import render_to_string
+from .tasks import send_email_task_run
 import weasyprint
 import random
-from .tasks import send_email_task_run
+import re
+import json
+import datetime
+import logging
 # Create your views here.
 
 #注册
@@ -112,7 +112,7 @@ def dologin(req):
         else:
             params['error'] = "用户不存在或已被禁用"
             params['code'] = 201
-
+        response.set_signed_cookie()
     return HttpResponse(json.dumps(params), content_type='application/json')
 
 #登出

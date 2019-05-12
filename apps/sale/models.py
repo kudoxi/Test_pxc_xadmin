@@ -1,5 +1,6 @@
 from django.db import models
 from apps.userinfo.models import UserInfo as ui
+from DjangoUeditor.models import UEditorField
 # Create your models here.
 EXAMINE_CHOICE = (
     (0,"审核中"),
@@ -38,6 +39,9 @@ class CarInfo(models.Model):
     examine = models.IntegerField(choices=EXAMINE_CHOICE,default=0,verbose_name="审核进度")
     isPurchase = models.BooleanField(verbose_name="是否已出售",default=False)
     isDeleted = models.BooleanField(verbose_name="是否删除",default=False)
+    remark = UEditorField(width=600, height=300, toolbars="full",
+                          imagePath="static/udimages/", filePath="static/udfiles/",
+                          upload_settings={"imageMaxSize":1204000},settings={}, verbose_name='内容')
 
     def __str__(self):
         return '{}-{}'.format(self.brand,self.ctitle)

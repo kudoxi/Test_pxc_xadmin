@@ -13,16 +13,25 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url,include
 from django.contrib import admin
 from django.views.generic import TemplateView
 from django.urls import path
+from django.conf.urls import url,include
 import xadmin
 urlpatterns = [
     #url('admin/', admin.site.urls),
     url('xadmin/', xadmin.site.urls),
     url('userinfo/', include('apps.userinfo.urls')),
+    url('ueditor/', include('DjangoUeditor.urls')),
     url('', include('apps.front.urls')),
-    #url(r'clogin',TemplateView.as_view(template_name="login.html"),name="clogin"),#对于不需要任何逻辑的方法,直接去访问模板页面
-    url('orm/', include('apps.ORMdemo.urls'))
+    url('orm/', include('apps.ORMdemo.urls')),
+
+    # url(r'clogin',TemplateView.as_view(template_name="login.html"),name="clogin"),
+    # #对于不需要任何逻辑的方法,直接去访问模板页面
 ]
+
+from django.conf import settings
+if settings.DEBUG:
+    from django.conf.urls.static import static
+    urlpatterns += static(
+        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
