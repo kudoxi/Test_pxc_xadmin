@@ -2,8 +2,15 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from . import models
 import random
-
+from django.db.models import Count,Sum,Max,Min,F,Q
+from django.db import connection,connections
+import pytz  #pytz.all_timezones显示出所有可填时区
+from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
+from utils.pager import PageInfo
+from django.utils.safestring import mark_safe
+from django.views.decorators.csrf import csrf_exempt,csrf_protect
 # Create your views here.
+
 def test(req):
     #创建数据
     # models.Foo.objects.create(caption='ttt')
@@ -92,7 +99,6 @@ def test(req):
     models.UserInfos.objects.filter(name__startswith='a')
     models.UserInfos.objects.filter(name__contains='root')
 
-    from django.db.models import Count,Sum,Max,Min,F,Q
     #F-----所有年龄加1
     models.UserInfos.objects.all().update(age=F('age')+1)
     #Q-----写法1
@@ -163,7 +169,6 @@ def test(req):
         print(i.name,i.age,i.n)
 
     #原生sql语句
-    from django.db import connection,connections
     cursor = connection.cursor()
     cursor2 = connections['default'].cursor()#使用默认数据库，还可以填写settings.py里设置的其他数据库
     cursor.execute("select * from ORMdemo_usertype where id = %s",[1])
@@ -215,7 +220,6 @@ def test(req):
     models.UserInfos.objects.dates('ctime', 'month', 'DESC')#month:表示获取年月-01，desc根据年月-01倒序排列
     models.UserInfos.objects.dates('ctime', 'year', 'DESC')#year:表示获取年-01-01，desc根据年-01-01倒序排列
 
-    import pytz  #pytz.all_timezones显示出所有可填时区
     models.UserInfos.objects.datetimes('ctime', 'hour', 'DESC',tzinfo=pytz.timezone('Asia/Shanghai'))
     #可填字段：year,month,day,hour,minute,second
     #tzinfo:转换时区
@@ -243,20 +247,18 @@ def test(req):
     return HttpResponse("aasa")
 
 
-from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
 def test_page(req):
     params = {}
     current_page = req.GET.get('page')
     userlist = models.UserInfos.objects.all()
 
     page_obj = Paginator(userlist,10)
-    '''page_obj
-    per_page:每页显示条目数量
-    count：数据总数
-    num_pages :总页数
-    page_range:总页数的索引范围 如（1,100）
-    page:page对象
-    '''
+    #page_obj
+    # per_page:每页显示条目数量
+    # count：数据总数
+    # num_pages :总页数
+    # page_range:总页数的索引范围 如（1,100）
+    # page:page对象
 
     try:
         posts = page_obj.page(current_page)#当前显示第几页
@@ -264,18 +266,16 @@ def test_page(req):
         posts = page_obj.page(1)
     except EmptyPage as e:                 #判断负数和空
         posts = page_obj.page(1)
-    '''posts
-    has_next                    是否有下一页
-    next_page_number            下一页页码
-    has_previous                是否有上一页
-    previous_page_number        上一页页码
-    object_list                 分页之后的数据列表
-    number                      当前页
-    '''
+    # posts
+    # has_next                    是否有下一页
+    # next_page_number            下一页页码
+    # has_previous                是否有上一页
+    # previous_page_number        上一页页码
+    # object_list                 分页之后的数据列表
+    # number                      当前页
     params['userlist'] = posts
     return render(req, 'test_page.html', params)
 
-from utils.pager import PageInfo
 def test_page_self(req):
     params = {}
     user_obj = models.UserInfos.objects.all()
@@ -295,7 +295,6 @@ def test_page_self4(req,*args,**kwargs):
     return HttpResponse(args)
 
 #标记某一字符串为安全的
-from django.utils.safestring import mark_safe
 def test_mark(req):
     temp = "<a href='www.baidu.com'>百度</a>"
     new_temp = mark_safe(temp)
@@ -309,6 +308,57 @@ def test_mark2(req,a1):
     v = reverse('aaa',args=(a1,))# ->  /orm/test_mark2/222
     return HttpResponse(v)
 
+#在全局禁用CSRF的情况下，局部作用csrf
+@csrf_protect
 def test_mark3(req,**kwargs):
     v = reverse('bbb',kwargs=kwargs)# ->  /orm/test_mark3/22/2222
     return HttpResponse(v)
+
+#在全局作用CSRF的情况下，局部禁用csrf
+@csrf_exempt
+def test_2(req):
+
+    # res = models.UserInfos.objects.all()
+    # for i in res:
+    #     #这样获取ut的title会导致每一次遍历都去查一次数据库
+    #     print(i.name,i.ut.title)
+
+    # res2 = models.UserInfos.objects.all().select_related('ut','gp')#总共查询1次
+    # SELECT `ORMdemo_userinfos`.*, `ORMdemo_usertype`.`id`, `ORMdemo_usertype`.`title`
+    # FROM `ORMdemo_userinfos`
+    # INNER JOIN `ORMdemo_usertype` ON (`ORMdemo_userinfos`.`ut_id` = `ORMdemo_usertype`.`id`)
+    # INNER JOIN `ORMdemo_group` ON (`ORMdemo_userinfos`.`gp_id` = `ORMdemo_group`.`id`);
+    # for i in res2:
+    #     print(i.name,i.ut.title)
+
+    res3 = models.UserInfos.objects.all().prefetch_related('ut')#总共查询2次
+    #先执行 select * from userinfo
+    #然后在Django内部获取每一行的ut_id去重，得到数组[1,2,3]
+    #再去执行 select * from usertype where id in [1,2,3]
+    for i in res3:
+        print(i.name,i.ut.title)
+    return HttpResponse('aaa')
+
+'''
+#1.CBV的情况里，类和类内的方法，装饰器要用method_decorator去接收，不能直接@装饰器名
+#2.如果要在类上，又要单独给某些方法加，可以写
+# @method_decorator(装饰器名,name='get')
+# @method_decorator(装饰器名,name='post')
+# class Foo(View):
+#3.在指定的方法上加，就在方法上直接写
+# @method_decorator(装饰器名)
+# def post(self,req):
+#4.csrf有个变态规定，只能加在类上，不能写在方法上
+# @method_decorator(csrf_protect)
+# class Foo(View):
+from django.views import View
+from django.utils.decorators import method_decorator
+@method_decorator(csrf_protect)
+class Foo(View):
+
+    def get(self,req):
+        pass
+
+    def post(self,req):
+        pass
+'''

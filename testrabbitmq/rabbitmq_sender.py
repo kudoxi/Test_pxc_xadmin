@@ -26,6 +26,8 @@ channel.basic_publish(
 connection.close()
 
 
+#启动
+#sudo rabbitmq-server -detached
 #创建用户
 #rabbitmqctl add_user kudoxi kudoxi
 #创建管理员

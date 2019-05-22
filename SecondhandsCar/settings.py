@@ -58,7 +58,10 @@ INSTALLED_APPS = [
     'apps.ORMdemo',
     'xadmin',
     'crispy_forms',
-    'DjangoUeditor'
+    'DjangoUeditor',
+    'rest_framework',
+    'testrabbitmq',
+
 ]
 from md import MyMiddleware
 MIDDLEWARE = [
@@ -200,3 +203,9 @@ HEADERS = [
 
 #自定义COOKIES 签名采用方法的路径配置
 SIGNING_BACKEND = 'utils.signcookie.MySigner'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES':[
+        'rest_framework.permissions.DjangoModelPermissionOrAnonReadOnly'
+    ],
+}

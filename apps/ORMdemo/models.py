@@ -4,6 +4,9 @@ from django.db import models
 #class Foo(models.Model):
 #    caption = models.CharField(max_length=16)
 
+#class Group(models.Model):
+    #capture = models.CharField(max_length=64)
+
 class UserType(models.Model):
     '''
     用户类型
@@ -19,4 +22,5 @@ class UserInfos(models.Model):
     name = models.CharField(max_length=64)
     age = models.IntegerField()
     ut = models.ForeignKey("UserType",on_delete=models.CASCADE)
+    #gp = models.ForeignKey("Group",on_delete=models.CASCADE)
     ctime = models.DateTimeField(auto_now=True)

@@ -2,6 +2,9 @@ from celery import Celery
 from django.conf import settings
 import os
 from . import settings
+#以下为celery + redis
+#django+celery+RabbitMQ 版本见：https://blog.csdn.net/dipolar/article/details/22162863
+
 
 # 为celery设置环境变量
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'SecondhandsCar.settings')
